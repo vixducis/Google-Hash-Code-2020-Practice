@@ -14,7 +14,7 @@ $output_path = './output/';
 * but will also increase processing time and memory usage exponentially
 * Precision should always be between 0 and 1.
 */
-$precision = 0.0001;
+$precision = 0.001;
 
 $reader = new FileReader($input_path);
 $writer = new FileWriter($output_path);
