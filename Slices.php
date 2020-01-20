@@ -22,7 +22,15 @@ class Slices {
 	*/
 	public function getTotal(): int {
 		return $this -> total;
-	}	
+	}
+
+    /**
+     * Returns the number of types of pizza
+     * @return int
+     */
+    public function getSliceCount(): int {
+        return count($this -> terms);
+    }
 
 	/*
 	* Returns an array with all the terms that make up the total

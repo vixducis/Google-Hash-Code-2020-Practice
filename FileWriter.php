@@ -16,7 +16,7 @@ class FileWriter {
 	public function write(string $filename, SliceSet $set): void {
 		$file = fopen($this -> path . $filename, 'w') or die('Unable to open file.');
 		$slices = $set -> getOptimalSlices();
-		$data = $slices -> getTotal() . "\n" . implode(' ', $slices -> getTerms());
+		$data = $slices -> getSliceCount() . "\n" . implode(' ', $slices -> getTerms());
 		fwrite($file, $data);
 		fclose($file);
 	}
