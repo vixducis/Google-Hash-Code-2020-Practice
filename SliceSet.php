@@ -46,7 +46,13 @@ class SliceSet {
 		if($this -> optimal_slices === null) {
 			$this -> calculate();
 		}
-		return $this -> optimal_slices;
+		$output = [];
+		foreach($this -> slice_options as $key => $val) {
+		    if(in_array($val, $this -> optimal_slices, false)) {
+		        $output[] = $key;
+            }
+        }
+		return $output;
 	}
 	
 	/**
@@ -54,7 +60,10 @@ class SliceSet {
 	* @return int
 	*/
 	public function getOptimalSlicesTotal(): int {
-		return array_sum($this -> getOptimalSlices());
+        if($this -> optimal_slices === null) {
+            $this -> calculate();
+        }
+		return array_sum($this -> optimal_slices);
 	}
 		
 	/**
@@ -119,8 +128,9 @@ class SliceSet {
 	private function calculate() {
 		$starting_slice = new Slices();
 		$calc_array = [$starting_slice];
-		rsort($this -> slice_options);
-		foreach($this -> slice_options as $key => $val) {
+		$values_to_process = $this -> slice_options;
+		rsort($values_to_process);
+		foreach($values_to_process as $key => $val) {
 			$temp_array = $this -> cloneArrayAndAdd($calc_array, intval($val));
 			$calc_array = array_merge($calc_array, $temp_array);
 			$calc_array = $this -> removeValuesLargerThan($calc_array, $this -> maximum);
