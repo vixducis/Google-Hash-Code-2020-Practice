@@ -2,17 +2,18 @@
 
 class Slices {
 
-	private $total = 0;
-	private $terms = array();
+	private int $total = 0;
+	private array $terms = array();
 
 	/**
 	* Ads a number to the slices. 
 	* This will update the internal total and it to the terms for later retrieval
 	* @param int $num
+    * @param int $index
 	*/
-	public function add(int $num) {
+	public function add(int $num, int $index): void {
 		$this -> total += $num;
-		$this -> terms [] = $num;
+		$this -> terms [] = $index;
 	}
 
 	/**
@@ -28,6 +29,7 @@ class Slices {
 	* @return array
 	*/
 	public function getTerms(): array {
+	    sort($this -> terms);
 		return $this -> terms;
 	}
 	

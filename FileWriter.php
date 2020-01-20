@@ -4,7 +4,7 @@ class FileWriter {
 	
 	private string $path;
 	
-	function __construct($path) {
+	public function __construct($path) {
 		$this -> path = $path;
 	}
 	
@@ -13,9 +13,10 @@ class FileWriter {
 	* @param string $filename
 	* @param SliceSet $set
 	*/
-	function write(string $filename, SliceSet $set) {
+	public function write(string $filename, SliceSet $set): void {
 		$file = fopen($this -> path . $filename, 'w') or die('Unable to open file.');
-		$data = $set -> getOptimalSlicesTotal() . "\n" . implode(' ', $set -> getOptimalSlices());
+		$slices = $set -> getOptimalSlices();
+		$data = $slices -> getTotal() . "\n" . implode(' ', $slices -> getTerms());
 		fwrite($file, $data);
 		fclose($file);
 	}
@@ -25,7 +26,7 @@ class FileWriter {
 	* @param string $input_filename
 	* @return string
 	*/
-	function getOutputFilename(string $input_filename): string {
+	public function getOutputFilename(string $input_filename): string {
 		return str_replace('.in', '.out', $input_filename);
 	}	
 }

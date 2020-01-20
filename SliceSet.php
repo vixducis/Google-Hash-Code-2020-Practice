@@ -4,10 +4,10 @@ class SliceSet {
 	
 	private int $maximum;
 	private array $slice_options = [];
-	private ?array $optimal_slices = null;
+	private ?Slices $optimal_slices = null;
 	private float $precision;
 	
-	function __construct(float $precision=0.001) {
+	public function __construct(float $precision=0.001) {
 		$this -> setPrecision($precision);
 	}
 	
@@ -15,7 +15,7 @@ class SliceSet {
 	* Sets the maximum number of slices that should be achieved (or as close to)
 	* @param int $maximum
 	*/
-	public function setMaximum(int $maximum) {
+	public function setMaximum(int $maximum): void {
 		$this -> maximum = $maximum;
 	}
 	
@@ -23,7 +23,7 @@ class SliceSet {
 	* Sets the array with all the numbers that can be added to reach the maximum.
 	* @param array $slice_options
 	*/
-	public function setSliceOptions(array $slice_options) {
+	public function setSliceOptions(array $slice_options): void {
 		$this -> slice_options = $slice_options;
 	}
 	
@@ -33,37 +33,20 @@ class SliceSet {
 	* Precision should always be between 0 and 1.
 	* @param float $precision
 	*/
-	public function setPrecision(float $precision) {
+	public function setPrecision(float $precision): void {
 		$this -> precision = $precision;
 	}
 	
 	/**
 	* Returns the optimal slices for the given set
 	* This will execute the calculation and cache the result
-	* @return array
+	* @return Slices
 	*/
-	public function getOptimalSlices(): array {
+	public function getOptimalSlices(): Slices {
 		if($this -> optimal_slices === null) {
 			$this -> calculate();
 		}
-		$output = [];
-		foreach($this -> slice_options as $key => $val) {
-		    if(in_array($val, $this -> optimal_slices, false)) {
-		        $output[] = $key;
-            }
-        }
-		return $output;
-	}
-	
-	/**
-	* Returns the total sum for the optimal solution found
-	* @return int
-	*/
-	public function getOptimalSlicesTotal(): int {
-        if($this -> optimal_slices === null) {
-            $this -> calculate();
-        }
-		return array_sum($this -> optimal_slices);
+		return $this -> optimal_slices;
 	}
 		
 	/**
@@ -89,19 +72,19 @@ class SliceSet {
 	}
 	
 	/**
-	* Provides a deep copy of an array.
-	* This makes sure the objects in the array or cloned instead of referenced
-	* Then it adds a given integer to all elments of the array
+	* Loops over all the elements in an array
+    * Performs an add-operation on the Slice object
+    * Add the object to the array again
 	* @param array $input
 	* @param int $to_add
-	* @return array
+    * @param int $array_index
 	*/
-	private function cloneArrayAndAdd(array $input, int $to_add): array {
-		foreach ($input as $k => $v) {
-		    $output[$k] = clone $v;
-			$output[$k] -> add($to_add);
+	private function ArrayAddMerge(array &$input, int $to_add, int $array_index): void {
+		foreach ($input as $slice) {
+		    $new_slice = clone $slice;
+		    $new_slice -> add($to_add, $array_index);
+		    $input[] = $new_slice;
 		}
-		return $output;
 	}
 	
 	
@@ -125,19 +108,21 @@ class SliceSet {
 	* This will perform the actual calculation of the optimal solution
 	* Also pritns out progress
 	*/
-	private function calculate() {
+	private function calculate(): void {
+	    //initialize and empty Slices object and add it to the stack
 		$starting_slice = new Slices();
 		$calc_array = [$starting_slice];
-		$values_to_process = $this -> slice_options;
-		rsort($values_to_process);
-		foreach($values_to_process as $key => $val) {
-			$temp_array = $this -> cloneArrayAndAdd($calc_array, intval($val));
-			$calc_array = array_merge($calc_array, $temp_array);
+
+		//reverse sort the original array, this greatly improves results
+        arsort($this -> slice_options);
+
+		foreach($this -> slice_options as $key => $val) {
+			$this -> ArrayAddMerge($calc_array, (int)$val, (int)$key );
 			$calc_array = $this -> removeValuesLargerThan($calc_array, $this -> maximum);
 			
-			//let's sort the array by asceding totals
-			usort($calc_array, function($a,$b) {
-				if ($a -> getTotal() == $b -> getTotal()) {
+			//let's sort the array by ascending totals
+			usort($calc_array, static function($a, $b) {
+				if ($a -> getTotal() === $b -> getTotal()) {
 						return 0;
 				}
 				return ($a -> getTotal() < $b -> getTotal()) ? -1 : 1;
@@ -146,10 +131,15 @@ class SliceSet {
 			//trim the array for values too close together
 			$delta = $this -> precision;
 			$calc_array = $this -> trim($calc_array, $delta);
-			echo "progress: ".$key.'/'.count($this -> slice_options). ', best solution: ' . end($calc_array) -> getTotal().PHP_EOL ;
+			echo 'to process: '
+                . $key
+                . '/'
+                . count($this -> slice_options)
+                . ', best solution: '
+                . end($calc_array) -> getTotal()
+                . PHP_EOL;
 		}
-		$winner = end($calc_array);
-		$this -> optimal_slices = $winner -> getTerms();
+		$this -> optimal_slices = end($calc_array);
 	}
 	
 }
