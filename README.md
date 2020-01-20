@@ -7,9 +7,9 @@ A precision variable can be found in main.php. This variable can be lowered to i
 
 | File          | Score         |
 | ------------- |---------------|
-| a_example     | 504999999     |
-| b_small       | 999999725     |
+| a_example     | 16            |
+| b_small       | 100           |
 | c_medium      | 4500          |
-| d_quite_big   | 100           |
-| e_also_big    | 16            |
+| d_quite_big   | 999999725     |
+| e_also_big    | 504999999     |
 | TOTAL         | 1 505 004 340 |
