@@ -64,18 +64,23 @@ class SliceSet
      */
     private function trim(array $input, float $delta): array
     {
-        $prev = array_shift($input);
-        $last = array_pop($input);
-        $output = [$prev];
-        $prev = $prev->getTotal();
-        foreach ($input as $val) {
-            if ($val->getTotal() > $prev * ($delta + 1)) {
-                $output[] = $val;
+        if (count($input) > 1) {
+            $prev = array_shift($input);
+            $last = array_pop($input);
+            $output = [$prev];
+            $prev = $prev->getTotal();
+            foreach ($input as $val) {
+                if ($val->getTotal() > $prev * ($delta + 1)) {
+                    $output[] = $val;
+                }
+                $prev = $val->getTotal();
             }
-            $prev = $val->getTotal();
+            $output[] = $last;
+            return $output;
         }
-        $output[] = $last;
-        return $output;
+        else {
+            return $input;
+        }
     }
 
     /**
@@ -102,14 +107,22 @@ class SliceSet
      * @param int $max
      * @return array
      */
-    private function removeValuesLargerThan(array $input, int $max): array
+    private function purgeTooSmallOrLarge(array $input, int $max, int $remaining_input_sum, int $current_maximum): array
     {
-        foreach ($input as $k => $v) {
-            if ($v->getTotal() > $max) {
-                unset($input[$k]);
+        if ($remaining_input_sum < $this->maximum) {
+            foreach ($input as $k => $v) {
+                if ($v->getTotal() > $max || ($v->getTotal() + $remaining_input_sum) < $current_maximum) {
+                    unset($input[$k]);
+                }
+            }
+        } else {
+            foreach ($input as $k => $v) {
+                if ($v->getTotal() > $max) {
+                    unset($input[$k]);
+                }
             }
         }
-        return $input;
+        return array_values($input);
     }
 
     /**
@@ -121,30 +134,37 @@ class SliceSet
         //initialize and empty Slices object and add it to the stack
         $starting_slice = new Slices();
         $calc_array = [$starting_slice];
+        $current_maximum = 0;
+        $remaining_input_sum = array_sum($this->slice_options);
 
         //reverse sort the original array, this greatly improves results
         arsort($this->slice_options);
 
         foreach ($this->slice_options as $key => $val) {
             $this->ArrayAddMerge($calc_array, (int)$val, (int)$key);
-            $calc_array = $this->removeValuesLargerThan($calc_array, $this->maximum);
+            $remaining_input_sum -= (int)$val;
+            $calc_array = $this->purgeTooSmallOrLarge($calc_array, $this->maximum, $remaining_input_sum, $current_maximum);
 
             //let's sort the array by ascending totals
             usort($calc_array, static function ($a, $b) {
-                return $a -> getTotal() <=> $b -> getTotal();
+                return $a->getTotal() <=> $b->getTotal();
             });
 
             //trim the array for values too close together
             $delta = $this->precision;
             $calc_array = $this->trim($calc_array, $delta);
+
+            //determine current winner and give the user something to look at
+            $current_maximum = end($calc_array)->getTotal();
             echo 'to process: '
                 . $key
                 . '/'
                 . count($this->slice_options)
                 . ', best solution: '
-                . end($calc_array)->getTotal()
+                . $current_maximum
                 . PHP_EOL;
         }
+
         $this->optimal_slices = end($calc_array);
     }
 
