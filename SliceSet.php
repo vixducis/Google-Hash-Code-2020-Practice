@@ -109,7 +109,6 @@ class SliceSet
                 unset($input[$k]);
             }
         }
-        $input = array_values($input);
         return $input;
     }
 
@@ -132,10 +131,7 @@ class SliceSet
 
             //let's sort the array by ascending totals
             usort($calc_array, static function ($a, $b) {
-                if ($a->getTotal() === $b->getTotal()) {
-                    return 0;
-                }
-                return ($a->getTotal() < $b->getTotal()) ? -1 : 1;
+                return $a -> getTotal() <=> $b -> getTotal();
             });
 
             //trim the array for values too close together
