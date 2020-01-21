@@ -1,5 +1,5 @@
 <?php
-	
+
 require('SliceSet.php');
 require('FileReader.php');
 require('FileWriter.php');
@@ -18,10 +18,10 @@ $precision = 0.001;
 
 $reader = new FileReader($input_path);
 $writer = new FileWriter($output_path);
-$files = $reader -> getFiles();
+$files = $reader->getFiles();
 
-foreach($files as $file){
-	$set = new SliceSet($precision);
-	$reader -> readFile($file, $set);
-	$writer -> write($writer -> getOutputFilename($file), $set);
+foreach ($files as $file) {
+    $set = new SliceSet($precision);
+    $reader->readFile($file, $set);
+    $writer->write($writer->getOutputFilename($file), $set);
 }
